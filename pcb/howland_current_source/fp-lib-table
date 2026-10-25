@@ -1,0 +1,5 @@
+(fp_lib_table
+	(version 7)
+	(lib (name "howland_current_source") (type "KiCad") (uri "${KIPRJMOD}/howland_current_source.pretty") (options "") (descr ""))
+	(lib (name "howland_current_source") (type "KiCad") (uri "/Users/amoralesma/Documents/kyma/projects/proj-kuntur/pcb/howland_current_source.pretty") (options "") (descr ""))
+)

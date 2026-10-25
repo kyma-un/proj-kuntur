@@ -1,0 +1,53 @@
+* ============================================================
+* LM675 - Macromodelo de comportamiento para LTspice
+* NO es el modelo oficial de TI/National: es un modelo propio
+* ajustado a las especificaciones tipicas del datasheet.
+*
+* Orden de pines (igual al simbolo generico "opamp" de LTspice):
+*   1 = IN+   2 = IN-   3 = V+   4 = V-   5 = OUT
+*
+* Parametros modelados (tipicos, +-25 V):
+*   Ganancia DC ~90 dB, GBW ~5.5 MHz, Slew ~8 V/us
+*   Vos ~1 mV, Ibias ~0.2 uA, Rin diferencial ~5 Mohm
+*   Iq ~10 mA, Corriente de salida limitada a ~4 A
+*   Saturacion de salida a ~4 V de cada riel (datasheet: +-21 V tipico
+*   con Vs=+-25 V y RL=8 ohm; minimo garantizado +-18 V, o sea 7 V)
+*   Polo no dominante ~20 MHz
+* No modela: CMRR, PSRR, SOA, proteccion termica, distorsion de cruce.
+* ============================================================
+.subckt LM675 INP INN VP VM OUT
+.param GM=1m
+.param IMAX=230u
+.param VOS=1m
+.param ROUT=0.05
+.param ILIM=4
+.param VDROP=4
+
+* Entrada
+Rdiff INP INN 5Meg
+Ib1 INP 0 200n
+Ib2 INN 0 200n
+
+* Etapa de ganancia: gm limitada (da el slew rate = IMAX/C1)
+Bgm 0 vc I={IMAX}*tanh({GM}*(V(INP)-V(INN)+{VOS})/{IMAX})
+R1 vc 0 31.6Meg
+C1 vc 0 28.9p
+
+* Polo no dominante
+Rp vc vc2 1k
+Cp vc2 0 8p
+
+* Clamps para que el nodo interno no se dispare en saturacion
+Dh vc hi DCL
+Dl lo vc DCL
+Bhi hi 0 V=V(VP)-{VDROP}
+Blo lo 0 V=V(VM)+{VDROP}
+.model DCL D(Is=1e-15 Rs=1)
+
+* Salida: fuente de tension limitada a los rieles, con Rout y limite de corriente
+Bint vint 0 V=limit(V(vc2),V(VM)+{VDROP},V(VP)-{VDROP})
+Bout 0 OUT I=limit((V(vint)-V(OUT))/{ROUT},-{ILIM},{ILIM})
+
+* Corriente de reposo
+Biq VP VM I=10m
+.ends LM675
